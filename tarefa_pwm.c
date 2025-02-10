@@ -1,85 +1,60 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
-// Definições de pinos e configurações PWM
-#define PIN_SERVO 22                                     // Pino de controle do servo motor
-#define LED_RGB_PIN 12                                   // Pino de controle do LED RGB
-#define PWM_FREQ 50                                      // Frequência do PWM (50Hz para servos)
-#define CLOCK_FREQ 125000000                             // Frequência do clock da CPU (125 MHz)
-#define PWM_DIVIDER 64.0                                 // Reduz a frequência do clock para PWM
-#define PWM_WRAP (CLOCK_FREQ / (PWM_DIVIDER * PWM_FREQ)) // Valor de "wrap" do PWM para 50Hz
+#define SERVO_PIN 22
+#define PWM_FREQ 50      // Frequência de 50Hz
+#define PWM_PERIOD 20000 // Período em microsegundos (20ms)
 
-// Função para configurar o PWM em um pino específico
-void setup_pwm(uint pin, uint *slice_num, uint *channel)
+void setup_pwm(uint gpio)
 {
-    gpio_set_function(pin, GPIO_FUNC_PWM);
-    *slice_num = pwm_gpio_to_slice_num(pin); // Obtém o slice PWM do pino
-    *channel = pwm_gpio_to_channel(pin);     // Obtém o canal PWM do pino
+    gpio_set_function(gpio, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(gpio);
 
-    pwm_set_clkdiv(*slice_num, PWM_DIVIDER); // Define o divisor de clock do PWM
-    pwm_set_wrap(*slice_num, PWM_WRAP);      // Define o valor de "wrap" do PWM
-    pwm_set_enabled(*slice_num, true);       // Habilita o PWM no slice correspondente
+    // Configura o divisor para obter a frequência de 50Hz
+    pwm_set_clkdiv(slice_num, 64.0f);
+
+    // O contador PWM deve "envolver" a cada 20ms (50Hz)
+    pwm_set_wrap(slice_num, 39062); // 125MHz / 64 = 1.953125 MHz; 1.953125 MHz / 50Hz = 39062
+
+    pwm_set_enabled(slice_num, true);
 }
 
-// Função para definir o ângulo do servo com base no pulso em microssegundos
-void set_servo_angle(uint slice_num, uint channel, float pulse_us)
+void set_servo_pulse(uint gpio, uint16_t pulse_width_us)
 {
-    uint16_t level = (pulse_us / 20000.0) * PWM_WRAP; // Converte tempo de pulso para nível de PWM
-    pwm_set_chan_level(slice_num, channel, level);    // Define o nível do PWM para o servo
-}
-
-// Função para definir o estado do LED RGB
-void set_led_state(uint slice_num, uint channel, bool state)
-{
-    uint16_t level = state ? PWM_WRAP : 0; // Liga (máximo brilho) ou desliga o LED
-    pwm_set_chan_level(slice_num, channel, level);
+    uint slice_num = pwm_gpio_to_slice_num(gpio);
+    uint16_t level = (pulse_width_us * (39062)) / PWM_PERIOD;
+    pwm_set_gpio_level(gpio, level);
 }
 
 int main()
 {
-    stdio_init_all(); // Inicializa entrada e saída padrão
-    sleep_ms(500);    // Pequeno atraso para estabilização do sistema
+    stdio_init_all();
+    setup_pwm(SERVO_PIN);
 
-    uint slice_num_servo, channel_servo;
-    uint slice_num_led, channel_led;
-
-    // Configuração do PWM para o servo
-    setup_pwm(PIN_SERVO, &slice_num_servo, &channel_servo);
-
-    // Configuração do PWM para o LED
-    setup_pwm(LED_RGB_PIN, &slice_num_led, &channel_led);
-
-    set_servo_angle(slice_num_servo, channel_servo, 2400);
-    set_led_state(slice_num_led, channel_led, true);
-    sleep_ms(5000);
-
-    set_servo_angle(slice_num_servo, channel_servo, 1470);
-    set_led_state(slice_num_led, channel_led, false);
-    sleep_ms(5000);
-
-    set_servo_angle(slice_num_servo, channel_servo, 500);
-    set_led_state(slice_num_led, channel_led, false);
-    sleep_ms(5000);
-
-    while (1)
+    while (true)
     {
-        for (float pulse = 500; pulse <= 2400; pulse += 5)
+        // Posiciona o servo em 180 graus (2400us)
+        set_servo_pulse(SERVO_PIN, 2400);
+        sleep_ms(5000);
+
+        // Posiciona o servo em 90 graus (1470us)
+        set_servo_pulse(SERVO_PIN, 1470);
+        sleep_ms(5000);
+
+        // Posiciona o servo em 0 graus (500us)
+        set_servo_pulse(SERVO_PIN, 500);
+        sleep_ms(5000);
+
+        // Movimentação suave entre 0 e 180 graus
+        for (uint16_t pulse = 500; pulse <= 2400; pulse += 5)
         {
-            set_servo_angle(slice_num_servo, channel_servo, pulse);
-            if (pulse == 2400)
-            {
-                set_led_state(slice_num_led, channel_led, true); // Acende ao atingir máximo para baixo
-            }
+            set_servo_pulse(SERVO_PIN, pulse);
             sleep_ms(10);
         }
-
-        for (float pulse = 2400; pulse >= 500; pulse -= 5)
+        for (uint16_t pulse = 2400; pulse >= 500; pulse -= 5)
         {
-            set_servo_angle(slice_num_servo, channel_servo, pulse);
-            if (pulse == 500)
-            {
-                set_led_state(slice_num_led, channel_led, false); // Apaga ao atingir máximo para cima
-            }
+            set_servo_pulse(SERVO_PIN, pulse);
             sleep_ms(10);
         }
     }
