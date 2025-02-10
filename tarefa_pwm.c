@@ -28,11 +28,11 @@ void set_servo_angle(uint slice_num, uint channel, float pulse_us)
     pwm_set_chan_level(slice_num, channel, level);    // Define o nível do PWM para o servo
 }
 
-// Função para definir o brilho do LED com base no pulso em microssegundos
-void set_led_brightness(uint slice_num, uint channel, float pulse_us)
+// Função para definir o estado do LED RGB
+void set_led_state(uint slice_num, uint channel, bool state)
 {
-    uint16_t level = (pulse_us / 20000.0) * PWM_WRAP; // Converte tempo de pulso para nível de PWM
-    pwm_set_chan_level(slice_num, channel, level);    // Define o nível do PWM para o LED
+    uint16_t level = state ? PWM_WRAP : 0; // Liga (máximo brilho) ou desliga o LED
+    pwm_set_chan_level(slice_num, channel, level);
 }
 
 int main()
@@ -49,37 +49,38 @@ int main()
     // Configuração do PWM para o LED
     setup_pwm(LED_RGB_PIN, &slice_num_led, &channel_led);
 
-    // Define o servo para a posição inicial de 270° (sul) e ajusta o brilho do LED proporcionalmente
     set_servo_angle(slice_num_servo, channel_servo, 2400);
-    set_led_brightness(slice_num_led, channel_led, 2400);
+    set_led_state(slice_num_led, channel_led, true);
     sleep_ms(5000);
 
-    // Move o servo para 0° (leste) e ajusta o LED
     set_servo_angle(slice_num_servo, channel_servo, 1470);
-    set_led_brightness(slice_num_led, channel_led, 1470);
+    set_led_state(slice_num_led, channel_led, false);
     sleep_ms(5000);
 
-    // Move o servo para 90° (norte) e ajusta o LED
     set_servo_angle(slice_num_servo, channel_servo, 500);
-    set_led_brightness(slice_num_led, channel_led, 500);
+    set_led_state(slice_num_led, channel_led, false);
     sleep_ms(5000);
 
     while (1)
     {
-        // Movimento suave do servo de 90° para 270° passando por 0°
         for (float pulse = 500; pulse <= 2400; pulse += 5)
         {
             set_servo_angle(slice_num_servo, channel_servo, pulse);
-            set_led_brightness(slice_num_led, channel_led, pulse);
-            sleep_ms(10); // Pequeno atraso para suavizar o movimento
+            if (pulse == 2400)
+            {
+                set_led_state(slice_num_led, channel_led, true); // Acende ao atingir máximo para baixo
+            }
+            sleep_ms(10);
         }
 
-        // Movimento suave do servo de 270° para 90° passando por 0°
         for (float pulse = 2400; pulse >= 500; pulse -= 5)
         {
             set_servo_angle(slice_num_servo, channel_servo, pulse);
-            set_led_brightness(slice_num_led, channel_led, pulse);
-            sleep_ms(10); // Pequeno atraso para suavizar o movimento
+            if (pulse == 500)
+            {
+                set_led_state(slice_num_led, channel_led, false); // Apaga ao atingir máximo para cima
+            }
+            sleep_ms(10);
         }
     }
 }
