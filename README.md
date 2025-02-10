@@ -1,5 +1,6 @@
 Tarefa: Controle de Servomotor por PWM com Raspberry Pi Pico W
 
+Este projeto foi desenvolvido individualmente como parte de uma tarefa.
 
 Link do vídeo:
 
@@ -12,7 +13,7 @@ Componentes Utilizados
 
     Microcontrolador Raspberry Pi Pico W.
 
-    Servomotor – motor micro servo padrão (simulado no Wokwi).
+    Servomotor – motor micro servo padrão (simulado no Wokwi integrado).
 
     LED RGB (GPIO 12) para experimento com BitDogLab.
 
@@ -53,6 +54,7 @@ Estrutura do Código
     CMakeLists.txt: Configuração do projeto para compilação com o Pico SDK.
 
 Experimentos e Resultados
+
 Controle do Servomotor
 
     O servomotor é controlado com movimentos suaves entre 0 e 180 graus, utilizando incrementos de 5µs no ciclo ativo do PWM.
@@ -63,11 +65,6 @@ Experimento com LED RGB
 
     O LED RGB (GPIO 12) foi controlado proporcionalmente ao ciclo ativo do PWM.
 
+    Acende LED azul quando o servo motor atinge maximo para baixo e apaga quando atinge o maximo para cima
+
     Utilizando a ferramenta BitDogLab, foi possível observar a variação de brilho do LED em sincronia com o movimento do servomotor.
-
-Vídeo Ensaio
-
-Um vídeo ensaio foi produzido para demonstrar a solução implementada e os resultados obtidos. Assista ao vídeo aqui.
-Contribuição
-
-Este projeto foi desenvolvido individualmente como parte de uma atividade acadêmica. Contribuições externas não são esperadas.
