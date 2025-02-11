@@ -2,60 +2,60 @@
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
-#define SERVO_PIN 22
-#define PWM_FREQ 50      // Frequência de 50Hz
-#define PWM_PERIOD 20000 // Período em microsegundos (20ms)
+#define SERVO_PIN 22     // GPIO usada para controlar o servo
+#define PWM_FREQUENCY 50 // Frequência do PWM (50Hz)
+#define PWM_WRAP 20000   // Período do PWM em microssegundos (20ms)
 
-void setup_pwm(uint gpio)
+void set_servo_pulse(uint slice, uint channel, uint pulse_width)
 {
-    gpio_set_function(gpio, GPIO_FUNC_PWM);
-    uint slice_num = pwm_gpio_to_slice_num(gpio);
-
-    // Configura o divisor para obter a frequência de 50Hz
-    pwm_set_clkdiv(slice_num, 64.0f);
-
-    // O contador PWM deve "envolver" a cada 20ms (50Hz)
-    pwm_set_wrap(slice_num, 39062); // 125MHz / 64 = 1.953125 MHz; 1.953125 MHz / 50Hz = 39062
-
-    pwm_set_enabled(slice_num, true);
-}
-
-void set_servo_pulse(uint gpio, uint16_t pulse_width_us)
-{
-    uint slice_num = pwm_gpio_to_slice_num(gpio);
-    uint16_t level = (pulse_width_us * (39062)) / PWM_PERIOD;
-    pwm_set_gpio_level(gpio, level);
+    // Define a largura do pulso PWM
+    pwm_set_chan_level(slice, channel, pulse_width);
 }
 
 int main()
 {
     stdio_init_all();
-    setup_pwm(SERVO_PIN);
 
-    while (true)
+    // Configuração do PWM na GPIO 22
+    gpio_set_function(SERVO_PIN, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(SERVO_PIN);
+    uint channel = pwm_gpio_to_channel(SERVO_PIN);
+
+    pwm_set_wrap(slice_num, PWM_WRAP); // Define o período do PWM (20ms)
+    pwm_set_clkdiv(slice_num, 125.0);  // Reduz a frequência do clock para ajustar o PWM
+    pwm_set_enabled(slice_num, true);  // Habilita o PWM
+
+    // Movendo o servo para 180°, 90° e 0° com intervalo de 5 segundos
+    printf("Movendo para 180 graus...\n");
+    set_servo_pulse(slice_num, channel, 2400);
+    sleep_ms(5000);
+
+    printf("Movendo para 90 graus...\n");
+    set_servo_pulse(slice_num, channel, 1470);
+    sleep_ms(5000);
+
+    printf("Movendo para 0 graus...\n");
+    set_servo_pulse(slice_num, channel, 500);
+    sleep_ms(5000);
+
+    // Movimentação contínua entre 0° e 180°
+    printf("Iniciando movimento contínuo entre 0° e 180°...\n");
+
+    while (1)
     {
-        // Posiciona o servo em 180 graus (2400us)
-        set_servo_pulse(SERVO_PIN, 2400);
-        sleep_ms(5000);
-
-        // Posiciona o servo em 90 graus (1470us)
-        set_servo_pulse(SERVO_PIN, 1470);
-        sleep_ms(5000);
-
-        // Posiciona o servo em 0 graus (500us)
-        set_servo_pulse(SERVO_PIN, 500);
-        sleep_ms(5000);
-
-        // Movimentação suave entre 0 e 180 graus
-        for (uint16_t pulse = 500; pulse <= 2400; pulse += 5)
+        // Subindo de 0° para 180°
+        for (uint pulse = 500; pulse <= 2400; pulse += 5)
         {
-            set_servo_pulse(SERVO_PIN, pulse);
+            set_servo_pulse(slice_num, channel, pulse);
             sleep_ms(10);
         }
-        for (uint16_t pulse = 2400; pulse >= 500; pulse -= 5)
+        // Descendo de 180° para 0°
+        for (uint pulse = 2400; pulse >= 500; pulse -= 5)
         {
-            set_servo_pulse(SERVO_PIN, pulse);
+            set_servo_pulse(slice_num, channel, pulse);
             sleep_ms(10);
         }
     }
+
+    return 0;
 }

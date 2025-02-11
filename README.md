@@ -5,6 +5,7 @@ Este projeto foi desenvolvido individualmente como parte de uma tarefa.
 Link do vídeo:
 
 Este repositório contém a implementação de um sistema de controle de servomotor utilizando o módulo PWM do microcontrolador Raspberry Pi Pico W. O projeto foi desenvolvido como parte da atividade proposta na unidade 4, capítulo 7, da disciplina ministrada pelo Prof. Dr. Ricardo Menezes Prates.
+
 Descrição do Projeto
 
 O objetivo desta tarefa é simular o controle de um servomotor utilizando o módulo PWM do RP2040. O sistema foi implementado no simulador Wokwi, e o código foi desenvolvido em C utilizando o Pico SDK. Além disso, foi realizado um experimento com o LED RGB (GPIO 12) utilizando a ferramenta BitDogLab.
@@ -45,14 +46,6 @@ Passos para Execução
 
     Para o experimento com o LED RGB, utilize a ferramenta BitDogLab conforme descrito no código.
 
-Estrutura do Código
-
-    main.c: Contém a lógica principal do projeto, incluindo a configuração do PWM, controle do servomotor e experimento com o LED RGB.
-
-    README.md: Este arquivo, com instruções de uso e detalhes do projeto.
-
-    CMakeLists.txt: Configuração do projeto para compilação com o Pico SDK.
-
 Experimentos e Resultados
 
 Controle do Servomotor
@@ -65,6 +58,4 @@ Experimento com LED RGB
 
     O LED RGB (GPIO 12) foi controlado proporcionalmente ao ciclo ativo do PWM.
 
-    Acende LED azul quando o servo motor atinge maximo para baixo e apaga quando atinge o maximo para cima
-
-    Utilizando a ferramenta BitDogLab, foi possível observar a variação de brilho do LED em sincronia com o movimento do servomotor.
+    Efetuando a alteração da porta GPIO de 22 para 12 conseguimos realizar o teste do LED na BitDogLab, foi possível observar a variação de brilho do LED em sincronia com o movimento do servomotor.
