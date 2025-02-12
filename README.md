@@ -2,7 +2,7 @@ Tarefa: Controle de Servomotor por PWM com Raspberry Pi Pico W
 
 Este projeto foi desenvolvido individualmente como parte de uma tarefa.
 
-Link do vídeo:
+Link do vídeo: https://www.youtube.com/watch?v=zc0r_OaaLMg
 
 Este repositório contém a implementação de um sistema de controle de servomotor utilizando o módulo PWM do microcontrolador Raspberry Pi Pico W. O projeto foi desenvolvido como parte da atividade proposta na unidade 4, capítulo 7, da disciplina ministrada pelo Prof. Dr. Ricardo Menezes Prates.
 
